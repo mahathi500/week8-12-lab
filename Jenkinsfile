@@ -3,33 +3,46 @@ pipeline {
     agent any
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t week8-registration:v1 .'
+                bat 'docker build -t mahathinalagandla/week8-registration:v1 .'
             }
         }
 
-        stage('Run Application') {
+        stage('Push Docker Image') {
             steps {
-                bat 'docker rm -f week8-registration-ci || exit /b 0'
-                bat 'docker run -d --name week8-registration-ci -p 5001:5000 week8-registration:v1'
+                bat 'docker push mahathinalagandla/week8-registration:v1'
             }
         }
 
-        stage('Verify Container') {
+        stage('Deploy to Kubernetes') {
             steps {
-                bat 'docker ps'
-                bat 'docker logs week8-registration-ci'
+                bat 'kubectl apply -f k8s/deployment.yaml'
+                bat 'kubectl apply -f k8s/service.yaml'
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                bat 'kubectl rollout status deployment/week8-registration --timeout=90s'
+                bat 'kubectl get pods'
+                bat 'kubectl get services'
             }
         }
     }
 
     post {
         success {
-            echo 'Week 8 pipeline completed successfully!'
+            echo 'Week 9 Jenkins-Kubernetes pipeline completed!'
         }
         failure {
-            echo 'Pipeline failed. Check the console output.'
+            echo 'Pipeline failed. Check Console Output.'
         }
     }
 }

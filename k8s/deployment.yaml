@@ -1,0 +1,20 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: week8-registration
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: week8-registration
+  template:
+    metadata:
+      labels:
+        app: week8-registration
+    spec:
+      containers:
+        - name: registration
+          image: mahathinalagandla/week8-registration:v1
+          ports:
+            - containerPort: 5000

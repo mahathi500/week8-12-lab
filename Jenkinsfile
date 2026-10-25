@@ -1,23 +1,25 @@
-
 pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t mahathinalagandla/week8-registration:v1 .'
+                echo "Build Docker Image"
+                bat "docker build -t week8-registration:v1 ."
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Docker Login') {
             steps {
-                bat 'docker push mahathinalagandla/week8-registration:v1'
+                bat 'docker login -u mahathinalagandla -p  Mahathi@123'
+            }
+        }
+
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                echo "Push Docker Image to Docker Hub"
+                bat "docker tag week8-registration:v1 mahathinalagandla/week8-registration:v1"
+                bat "docker push mahathinalagandla/week8-registration:v1"
             }
         }
 
@@ -25,24 +27,17 @@ pipeline {
             steps {
                 bat 'kubectl apply -f k8s/deployment.yaml'
                 bat 'kubectl apply -f k8s/service.yaml'
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
                 bat 'kubectl rollout status deployment/week8-registration --timeout=90s'
-                bat 'kubectl get pods'
-                bat 'kubectl get services'
             }
         }
     }
 
     post {
         success {
-            echo 'Week 9 Jenkins-Kubernetes pipeline completed!'
+            echo 'Week 9 pipeline completed successfully!'
         }
         failure {
-            echo 'Pipeline failed. Check Console Output.'
+            echo 'Pipeline failed. Please check the logs.'
         }
     }
 }
